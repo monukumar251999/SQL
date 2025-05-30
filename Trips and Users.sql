@@ -48,7 +48,22 @@ where
     client_id not in (select users_id from Users where role = 'client' and banned ='Yes') 
 and 
     driver_id not in (select users_id from Users where role = 'driver' and banned ='Yes') 
+ 
 and 
     request_at >= "2013-10-01" and request_at <= "2013-10-03"
 group by 
     request_at
+
+Solution 2:
+
+ select * from Trips;
+select * from Users;
+
+
+with trips_data as(
+select  request_at, sum(case when status in('cancelled_by_driver','cancelled_by_client') then 1 else 0 end) 
+as cancelled_trips, count(1) as total_trips from Trips
+where driver_id not in(select users_id from Users where banned='Yes') and client_id not in(select users_id from Users where banned='Yes')
+group by request_at
+)
+select request_at,round((cancelled_trips * 1.0/total_trips)*100 ,2) as cancellation_rate from trips_data
